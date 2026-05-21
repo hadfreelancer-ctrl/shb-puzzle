@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SHB Puzzle Challenge</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+:root{--red:#C8102E;--dark:#0D0D0D;--gray:#1A1A1A;--border:rgba(255,255,255,0.07);--silver:#888;--gold:#D4A843;--success:#00C851;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--dark);color:#fff;}
+.screen{display:none;width:100%;height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* HOME */
+#s-home{align-items:center;justify-content:flex-start;padding:20px;overflow-y:auto;gap:0;background:var(--dark);}
+#s-home::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(200,16,46,0.18) 0%,transparent 65%);}
+.home-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px;z-index:1;width:100%;max-width:380px;}
+.logo-box{width:42px;height:42px;background:var(--red);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;}
+.logo-txt b{font-size:15px;font-weight:900;display:block;}
+.logo-txt span{font-size:10px;color:var(--silver);}
+.home-h1{font-size:28px;font-weight:900;letter-spacing:-.03em;line-height:1.1;margin-bottom:4px;z-index:1;width:100%;max-width:380px;}
+.home-h1 em{color:var(--red);font-style:normal;}
+.home-sub{font-size:12px;color:var(--silver);margin-bottom:18px;z-index:1;width:100%;max-width:380px;}
+.upload-area{width:100%;max-width:380px;border:2px dashed rgba(200,16,46,.35);border-radius:14px;padding:14px;cursor:pointer;background:rgba(200,16,46,.04);position:relative;z-index:1;margin-bottom:14px;transition:all .2s;}
+.upload-area.filled{border-style:solid;border-color:rgba(200,16,46,.6);}
+.upload-preview{width:100%;height:150px;object-fit:cover;border-radius:9px;display:none;}
+.upload-preview.show{display:block;}
+.upload-ph{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 0;}
+.upload-ph.hide{display:none;}
+.upload-ph-icon{font-size:26px;}
+.upload-ph-text{font-size:13px;font-weight:700;color:var(--red);}
+.upload-ph-hint{font-size:11px;color:var(--silver);}
+.upload-change{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;display:none;}
+.upload-area.filled .upload-change{display:block;}
+#file-input{display:none;}
+.name-wrap{width:100%;max-width:380px;margin-bottom:14px;z-index:1;}
+.name-label{font-size:10px;font-weight:700;color:var(--silver);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;display:block;}
+.name-input{width:100%;background:var(--gray);border:1.5px solid var(--border);border-radius:11px;padding:12px 14px;color:#fff;font-family:inherit;font-size:15px;font-weight:500;outline:none;transition:border-color .2s;}
+.name-input:focus{border-color:var(--red);}
+.name-input::placeholder{color:rgba(255,255,255,.2);}
+.rules-wrap{width:100%;max-width:380px;background:var(--gray);border-radius:13px;padding:13px;margin-bottom:18px;z-index:1;border:1px solid var(--border);}
+.rules-head{font-size:10px;font-weight:700;color:var(--silver);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px;}
+.rules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.rc{background:rgba(255,255,255,.04);border-radius:8px;padding:8px 5px;text-align:center;}
+.rc-s{font-size:18px;font-weight:900;color:var(--red);line-height:1;}
+.rc-t{font-size:9px;color:var(--silver);margin-top:2px;font-weight:600;}
+.btn-start{width:100%;max-width:380px;background:var(--red);color:#fff;border:none;border-radius:13px;padding:15px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;z-index:1;transition:all .2s;}
+.btn-start:disabled{background:#333;color:var(--silver);cursor:not-allowed;}
+.lb-link{margin-top:10px;background:none;border:1.5px solid var(--border);color:var(--silver);border-radius:13px;padding:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;width:100%;max-width:380px;z-index:1;}
+
+/* PREVIEW */
+#s-preview{align-items:center;justify-content:center;background:#000;position:relative;overflow:hidden;}
+.prev-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(20px) brightness(.35) saturate(1.4);transform:scale(1.1);}
+.prev-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px;}
+.prev-lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.15em;}
+.prev-img{width:min(78vw,340px);border-radius:14px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.8);max-height:48vh;}
+.prev-cd-lbl{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:2px;font-weight:600;text-align:center;}
+.prev-cd-num{font-size:60px;font-weight:900;color:#fff;line-height:1;text-align:center;letter-spacing:-.04em;}
+.prev-bar-wrap{width:min(78vw,340px);background:rgba(255,255,255,.15);border-radius:4px;height:4px;overflow:hidden;}
+.prev-bar{height:100%;background:var(--red);border-radius:4px;transition:width 1s linear;width:100%;}
+.prev-player{font-size:13px;font-weight:700;color:rgba(255,255,255,.65);}
+
+/* GAME */
+#s-game{background:var(--dark);overflow:hidden;}
+.hud{padding:9px 13px;display:flex;align-items:center;gap:10px;background:var(--gray);border-bottom:1px solid var(--border);flex-shrink:0;}
+.hud-timer{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.4);border-radius:9px;padding:5px 11px;}
+.hud-t-val{font-size:21px;font-weight:900;font-variant-numeric:tabular-nums;color:#fff;transition:color .3s;min-width:46px;}
+.hud-t-val.warn{color:#FF9500;}
+.hud-t-val.danger{color:var(--red);animation:blink .5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.hud-prog{flex:1;}
+.hud-prog-row{display:flex;justify-content:space-between;margin-bottom:3px;}
+.hud-prog-lbl{font-size:10px;color:var(--silver);font-weight:700;}
+.hud-prog-bar{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.hud-prog-fill{height:100%;background:var(--red);border-radius:3px;transition:width .4s;width:0;}
+.hud-name{font-size:11px;font-weight:700;color:var(--silver);background:rgba(255,255,255,.06);padding:4px 9px;border-radius:20px;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.game-area{flex:1;display:flex;padding:8px;gap:8px;overflow:hidden;align-items:center;}
+
+/* BOARD — clean rectangle, no grid */
+#board-zone{position:relative;background:rgba(255,255,255,.02);border-radius:12px;border:1.5px solid rgba(255,255,255,.07);overflow:visible;flex-shrink:0;}
+#board-zone.drag-over{border-color:var(--red);background:rgba(200,16,46,.05);}
+.snap-ghost{position:absolute;pointer-events:none;z-index:2;display:none;}
+
+/* TRAY */
+.tray-zone{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.tray-lbl{font-size:9px;font-weight:700;color:var(--silver);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;text-align:center;flex-shrink:0;}
+#tray-canvas-wrap{flex:1;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;align-content:start;padding:2px;}
+#tray-canvas-wrap::-webkit-scrollbar{width:3px;}
+#tray-canvas-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.tray-piece{cursor:grab;border-radius:4px;transition:opacity .2s;touch-action:none;display:block;}
+.tray-piece.faded{opacity:.25;}
+.tray-piece:active{cursor:grabbing;}
+
+/* Drag ghost */
+#drag-ghost{position:fixed;pointer-events:none;z-index:99999;display:none;transform-origin:center;}
+
+/* RESULT */
+#s-result{align-items:center;background:var(--dark);overflow-y:auto;}
+.res-bar{width:100%;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;background:var(--gray);border-bottom:1px solid var(--border);flex-shrink:0;}
+.res-bar-t{font-size:16px;font-weight:800;}
+.res-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.08em;}
+.res-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;text-align:center;}
+.res-emoji{font-size:68px;margin-bottom:10px;}
+.res-pts{font-size:84px;font-weight:900;color:var(--red);line-height:1;letter-spacing:-.04em;}
+.res-pts-lbl{font-size:17px;font-weight:700;margin-bottom:3px;}
+.res-who{font-size:13px;color:var(--silver);margin-bottom:18px;}
+.res-tc{display:flex;align-items:center;gap:11px;background:var(--gray);border-radius:13px;padding:13px 20px;border:1px solid var(--border);margin-bottom:24px;}
+.res-tc-val{font-size:25px;font-weight:900;}
+.res-tc-lbl{font-size:10px;color:var(--silver);font-weight:600;}
+.res-btns{width:100%;max-width:320px;display:flex;flex-direction:column;gap:9px;}
+.btn-rp{background:var(--red);color:#fff;border:none;border-radius:12px;padding:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+.btn-rs{background:var(--gray);border:1.5px solid var(--border);color:#fff;border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* LEADERBOARD */
+#s-lb{background:var(--dark);overflow:hidden;}
+.lb-top{padding:13px 15px;display:flex;align-items:center;gap:9px;background:var(--gray);border-bottom:1px solid var(--border);flex-shrink:0;}
+.lb-back{background:none;border:none;color:var(--silver);font-size:22px;cursor:pointer;padding:0;line-height:1;}
+.lb-top-t{font-size:16px;font-weight:800;flex:1;}
+.lb-top-s{font-size:11px;color:var(--silver);}
+.lb-body{flex:1;overflow-y:auto;padding:13px;}
+.lb-empty{text-align:center;color:var(--silver);padding:50px 20px;font-size:14px;}
+.lb-item{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:12px;margin-bottom:7px;background:var(--gray);border:1px solid var(--border);}
+.lb-item.r1{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.3);}
+.lb-item.r2{background:rgba(168,168,168,.08);border-color:rgba(168,168,168,.2);}
+.lb-item.r3{background:rgba(205,127,50,.08);border-color:rgba(205,127,50,.2);}
+.lb-rank{font-size:20px;min-width:28px;text-align:center;font-weight:900;}
+.lb-rank.r1{color:var(--gold);}
+.lb-rank.r2{color:#aaa;}
+.lb-rank.r3{color:#CD7F32;}
+.lb-rank.rn{color:rgba(255,255,255,.3);font-size:13px;}
+.lb-info{flex:1;}
+.lb-iname{font-size:14px;font-weight:700;}
+.lb-idetail{font-size:11px;color:var(--silver);margin-top:2px;}
+.lb-iscore{text-align:right;}
+.lb-isn{font-size:22px;font-weight:900;color:var(--red);line-height:1;}
+.lb-isl{font-size:10px;color:var(--silver);font-weight:600;}
+.lb-footer{padding:11px 13px;flex-shrink:0;}
+.btn-clr{width:100%;background:none;border:1.5px solid rgba(200,16,46,.3);color:var(--red);border-radius:12px;padding:11px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}
+.cp{position:absolute;top:-16px;animation:cffall linear forwards;}
+@keyframes cffall{to{transform:translateY(110vh) rotate(540deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div class="home-logo">
+    <div class="logo-box">S</div>
+    <div class="logo-txt"><b>SHB</b><span>Ngân hàng Sài Gòn – Hà Nội</span></div>
+  </div>
+  <h1 class="home-h1">SHB <em>Puzzle</em> Challenge</h1>
+  <p class="home-sub">Ghép tranh 4×3 trong 120 giây · Nhanh hơn = Điểm cao hơn</p>
+  <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+    <img class="upload-preview" id="upload-preview" alt="">
+    <div class="upload-ph" id="upload-ph">
+      <div class="upload-ph-icon">🖼️</div>
+      <div class="upload-ph-text">Tải ảnh lên</div>
+      <div class="upload-ph-hint">Nhấn để chọn từ thiết bị</div>
+    </div>
+    <div class="upload-change">✏️ Đổi ảnh</div>
+  </div>
+  <input type="file" id="file-input" accept="image/*">
+  <div class="name-wrap">
+    <label class="name-label">Tên người chơi</label>
+    <input type="text" class="name-input" id="player-name" placeholder="Nhập tên của bạn..." maxlength="30">
+  </div>
+  <div class="rules-wrap">
+    <div class="rules-head">📊 Bảng điểm</div>
+    <div class="rules-grid">
+      <div class="rc"><div class="rc-s">5đ</div><div class="rc-t">&lt; 30s</div></div>
+      <div class="rc"><div class="rc-s">4đ</div><div class="rc-t">30–40s</div></div>
+      <div class="rc"><div class="rc-s">3đ</div><div class="rc-t">40–50s</div></div>
+      <div class="rc"><div class="rc-s">2đ</div><div class="rc-t">50–60s</div></div>
+      <div class="rc"><div class="rc-s">1đ</div><div class="rc-t">60–120s</div></div>
+      <div class="rc"><div class="rc-s" style="color:var(--silver)">0đ</div><div class="rc-t">Không xong</div></div>
+    </div>
+  </div>
+  <button class="btn-start" id="btn-start" disabled onclick="doStart()">🎮 Bắt đầu chơi</button>
+  <button class="lb-link" onclick="showLB()">🏆 Bảng xếp hạng</button>
+</div>
+
+<!-- PREVIEW -->
+<div id="s-preview" class="screen">
+  <div class="prev-bg" id="prev-bg"></div>
+  <div class="prev-content">
+    <div class="prev-lbl">Ghi nhớ hình ảnh!</div>
+    <img class="prev-img" id="prev-img" alt="">
+    <div>
+      <div class="prev-cd-lbl">Bắt đầu sau</div>
+      <div class="prev-cd-num" id="prev-cd">5</div>
+    </div>
+    <div class="prev-bar-wrap"><div class="prev-bar" id="prev-bar"></div></div>
+    <div class="prev-player" id="prev-player"></div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="s-game" class="screen">
+  <div class="hud">
+    <div class="hud-timer">
+      <span style="font-size:14px">⏱</span>
+      <span class="hud-t-val" id="hud-time">2:00</span>
+    </div>
+    <div class="hud-prog">
+      <div class="hud-prog-row">
+        <span class="hud-prog-lbl">Tiến độ</span>
+        <span class="hud-prog-lbl" id="hud-count">0/12</span>
+      </div>
+      <div class="hud-prog-bar"><div class="hud-prog-fill" id="hud-fill"></div></div>
+    </div>
+    <div class="hud-name" id="hud-name"></div>
+  </div>
+  <div class="game-area" id="game-area">
+    <div id="board-zone">
+      <canvas id="snap-ghost-canvas" style="position:absolute;top:0;left:0;pointer-events:none;z-index:2;"></canvas>
+    </div>
+    <div class="tray-zone">
+      <div class="tray-lbl">Mảnh ghép</div>
+      <div id="tray-canvas-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- drag ghost -->
+<canvas id="drag-ghost"></canvas>
+
+<!-- RESULT -->
+<div id="s-result" class="screen">
+  <div class="res-bar">
+    <div class="res-bar-t">Kết quả</div>
+    <div class="res-badge" id="res-badge">SHB</div>
+  </div>
+  <div class="res-body">
+    <div class="res-emoji" id="res-emoji">🎉</div>
+    <div class="res-pts" id="res-pts">0</div>
+    <div class="res-pts-lbl">điểm</div>
+    <div class="res-who" id="res-who"></div>
+    <div class="res-tc">
+      <span style="font-size:22px">⏱</span>
+      <div><div class="res-tc-val" id="res-time">—</div><div class="res-tc-lbl">Thời gian hoàn thành</div></div>
+    </div>
+    <div class="res-btns">
+      <button class="btn-rp" onclick="doPlayAgain()">🔄 Chơi lại</button>
+      <button class="btn-rs" onclick="showLB()">🏆 Bảng xếp hạng</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="s-lb" class="screen">
+  <div class="lb-top">
+    <button class="lb-back" onclick="showScreen('s-home')">←</button>
+    <div class="lb-top-t">🏆 Bảng Xếp Hạng</div>
+    <div class="lb-top-s" id="lb-sub">—</div>
+  </div>
+  <div class="lb-body" id="lb-body"></div>
+  <div class="lb-footer"><button class="btn-clr" onclick="clearLB()">🗑 Xóa bảng xếp hạng</button></div>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+// ================================================================
+//  CONSTANTS
+// ================================================================
+const COLS=4, ROWS=3, N=12;
+// TAB size as fraction of piece size
+const TAB=0.3; // how far the "knob" protrudes
+const TAB_INNER=0.05; // neck width factor
+
+// ================================================================
+//  STATE
+// ================================================================
+let srcImg=null, srcDataURL=null;
+let playerName='';
+let pieceW=0, pieceH=0;     // board piece pixel size
+let boardW=0, boardH=0;
+let PIECE_RENDER_W=0, PIECE_RENDER_H=0; // canvas size including tab overflow
+
+// edges[row][col][side]: 1=tab out, -1=tab in
+// sides: 0=top,1=right,2=bottom,3=left
+// shared edges stored once: horizontal[r][c]=top of piece(r,c) = bottom of piece(r-1,c)
+let hEdges=[], vEdges=[];  // hEdges[r][c] = edge between row r-1 and r at col c; vEdges[r][c]=edge between col c-1 and c at row r
+
+let pieceCanvases=[]; // pre-rendered canvas for each piece (with jigsaw shape, includes tab overflow)
+let trayCanvases=[];  // smaller canvases for tray display
+
+// boardPieces[slot] = pieceIdx | null
+let boardPieces=new Array(N).fill(null);
+// trayOrder[j] = pieceIdx | null (visual tray slots)
+let trayOrder=[];
+
+let correctCount=0, timeLeft=120, gameTimer=null, startTime=null, gameEnded=false;
+
+// drag state
+let drag=null;
+// drag={pieceIdx, fromTray(int|null), fromBoard(int|null), ghostCanvas, ghostW, ghostH, curX, curY}
+
+// ================================================================
+//  UTILS
+// ================================================================
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function getLB(){try{return JSON.parse(localStorage.getItem('shb_lb')||'[]')}catch{return[]}}
+function saveLB(lb){localStorage.setItem('shb_lb',JSON.stringify(lb));}
+function calcScore(t,done){if(!done)return 0;if(t<30)return 5;if(t<40)return 4;if(t<50)return 3;if(t<60)return 2;return 1;}
+function fmtTime(s){const m=Math.floor(s/60),sec=s%60;return m>0?`${m}m ${sec}s`:`${sec}s`;}
+function checkReady(){const ok=srcImg&&document.getElementById('player-name').value.trim();document.getElementById('btn-start').disabled=!ok;}
+
+// ================================================================
+//  JIGSAW PATH MATH
+// ================================================================
+// Generate edge map for full puzzle
+function generateEdges(){
+  hEdges=[];
+  // hEdges[r][c]: direction of tab between row r-1 and row r, col c
+  // r from 1..ROWS-1, c from 0..COLS-1
+  for(let r=0;r<ROWS+1;r++){
+    hEdges[r]=[];
+    for(let c=0;c<COLS;c++){
+      if(r===0||r===ROWS) hEdges[r][c]=0; // border = flat
+      else hEdges[r][c]=(Math.random()<0.5)?1:-1;
+    }
+  }
+  vEdges=[];
+  // vEdges[r][c]: direction of tab between col c-1 and col c, row r
+  for(let r=0;r<ROWS;r++){
+    vEdges[r]=[];
+    for(let c=0;c<COLS+1;c++){
+      if(c===0||c===COLS) vEdges[r][c]=0;
+      else vEdges[r][c]=(Math.random()<0.5)?1:-1;
+    }
+  }
+}
+
+// Get edge directions for piece at (row,col)
+// returns {top,right,bottom,left} where 1=knob sticks OUT of this piece, -1=knob goes IN
+function getPieceEdges(row,col){
+  return {
+    top:   hEdges[row][col],      // top edge: 0=border, else from hEdges
+    bottom: -hEdges[row+1][col],  // bottom: flipped for this piece
+    left:  vEdges[row][col],
+    right: -vEdges[row][col+1]
+  };
+}
+
+// Draw jigsaw path on ctx
+// ox,oy = offset inside canvas (to account for tab overflow)
+// w,h = core piece size (without tab)
+// edges = {top,right,bottom,left}
+function jigsawPath(ctx, ox, oy, w, h, edges){
+  const tx=w*TAB, ty=h*TAB;
+  const nx=w*0.12, ny=h*0.12; // neck half-width
+
+  ctx.beginPath();
+  ctx.moveTo(ox, oy);
+
+  // TOP edge: left to right
+  drawEdge(ctx, ox,oy, ox+w,oy, edges.top, true, w, h, false);
+  // RIGHT edge: top to bottom
+  drawEdge(ctx, ox+w,oy, ox+w,oy+h, edges.right, false, w, h, false);
+  // BOTTOM edge: right to left
+  drawEdge(ctx, ox+w,oy+h, ox,oy+h, edges.bottom, true, w, h, true);
+  // LEFT edge: bottom to top
+  drawEdge(ctx, ox,oy+h, ox,oy, edges.left, false, w, h, true);
+
+  ctx.closePath();
+}
+
+// Draw one edge from (x1,y1) to (x2,y2)
+// horiz=true means horizontal edge, dir=1 means knob toward smaller coord (up for top, left for left)
+// reversed = drawing right-to-left or bottom-to-top
+function drawEdge(ctx, x1,y1, x2,y2, tab, isHoriz, pw, ph, reversed){
+  if(tab===0){
+    ctx.lineTo(x2,y2);
+    return;
+  }
+  const knobSize = isHoriz ? ph*TAB : pw*TAB;
+  const neckW = isHoriz ? ph*0.1 : pw*0.1;
+  const knobW = isHoriz ? pw*0.22 : ph*0.22;
+
+  // midpoint
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const dir = reversed ? -tab : tab;
+
+  if(isHoriz){
+    // horizontal: knob goes up(dir=1) or down(dir=-1)
+    const ky = my + (-dir)*knobSize;
+    ctx.lineTo(mx - knobW - neckW, y1);
+    ctx.bezierCurveTo(
+      mx - knobW - neckW, y1,
+      mx - knobW, y1 + (-dir)*neckW*2,
+      mx - knobW, y1 + (-dir)*neckW*2
+    );
+    ctx.bezierCurveTo(
+      mx - knobW*1.1, ky,
+      mx + knobW*1.1, ky,
+      mx + knobW, y1 + (-dir)*neckW*2
+    );
+    ctx.bezierCurveTo(
+      mx + knobW, y1 + (-dir)*neckW*2,
+      mx + knobW + neckW, y1,
+      mx + knobW + neckW, y1
+    );
+    ctx.lineTo(x2,y2);
+  } else {
+    // vertical: knob goes right(dir=1) or left(dir=-1)
+    const kx = mx + (-dir)*knobSize;
+    ctx.lineTo(x1, my - knobW - neckW);
+    ctx.bezierCurveTo(
+      x1, my - knobW - neckW,
+      x1 + (-dir)*neckW*2, my - knobW,
+      x1 + (-dir)*neckW*2, my - knobW
+    );
+    ctx.bezierCurveTo(
+      kx, my - knobW*1.1,
+      kx, my + knobW*1.1,
+      x1 + (-dir)*neckW*2, my + knobW
+    );
+    ctx.bezierCurveTo(
+      x1 + (-dir)*neckW*2, my + knobW,
+      x1, my + knobW + neckW,
+      x1, my + knobW + neckW
+    );
+    ctx.lineTo(x2,y2);
+  }
+}
+
+// ================================================================
+//  PRE-RENDER PIECES
+// ================================================================
+function preRenderPieces(){
+  generateEdges();
+  pieceCanvases=[];
+
+  const overhang = Math.max(pieceW, pieceH)*TAB + 4; // extra px for tabs
+  const OX = overhang, OY = overhang;
+  PIECE_RENDER_W = pieceW + overhang*2;
+  PIECE_RENDER_H = pieceH + overhang*2;
+
+  for(let i=0;i<N;i++){
+    const col=i%COLS, row=Math.floor(i/COLS);
+    const c=document.createElement('canvas');
+    c.width=PIECE_RENDER_W; c.height=PIECE_RENDER_H;
+    const ctx=c.getContext('2d');
+
+    const edges=getPieceEdges(row,col);
+
+    // clip to jigsaw shape
+    jigsawPath(ctx, OX, OY, pieceW, pieceH, edges);
+    ctx.save();
+    ctx.clip();
+
+    // draw image slice (account for tabs: source region = core piece)
+    const iw=srcImg.naturalWidth, ih=srcImg.naturalHeight;
+    const sw=iw/COLS, sh=ih/ROWS;
+    // need to draw a bit more than the slice to fill the tabs
+    const scaleX=pieceW/sw, scaleY=pieceH/sh;
+    const extraX=OX/scaleX, extraY=OY/scaleY;
+    ctx.drawImage(srcImg,
+      col*sw - extraX, row*sh - extraY,
+      sw + extraX*2, sh + extraY*2,
+      0, 0,
+      PIECE_RENDER_W, PIECE_RENDER_H
+    );
+
+    ctx.restore();
+
+    // re-draw stroke on top for shape definition
+    jigsawPath(ctx, OX, OY, pieceW, pieceH, edges);
+    ctx.strokeStyle='rgba(0,0,0,0.35)';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+
+    // subtle highlight
+    jigsawPath(ctx, OX, OY, pieceW, pieceH, edges);
+    ctx.save();
+    ctx.clip();
+    const grad=ctx.createLinearGradient(0,0,0,PIECE_RENDER_H);
+    grad.addColorStop(0,'rgba(255,255,255,0.15)');
+    grad.addColorStop(0.4,'rgba(255,255,255,0)');
+    grad.addColorStop(1,'rgba(0,0,0,0.12)');
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,PIECE_RENDER_W,PIECE_RENDER_H);
+    ctx.restore();
+
+    pieceCanvases.push(c);
+  }
+
+  // Tray: smaller versions
+  trayCanvases=pieceCanvases.map(c=>{
+    const scale=0.5;
+    const tc=document.createElement('canvas');
+    tc.width=Math.round(c.width*scale);
+    tc.height=Math.round(c.height*scale);
+    const tctx=tc.getContext('2d');
+    tctx.drawImage(c,0,0,tc.width,tc.height);
+    return tc;
+  });
+}
+
+// ================================================================
+//  HOME / UPLOAD
+// ================================================================
+document.getElementById('file-input').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    srcDataURL=ev.target.result;
+    const img=new Image();
+    img.onload=()=>{
+      srcImg=img;
+      document.getElementById('upload-preview').src=srcDataURL;
+      document.getElementById('upload-preview').classList.add('show');
+      document.getElementById('upload-ph').classList.add('hide');
+      document.getElementById('upload-area').classList.add('filled');
+      checkReady();
+    };
+    img.src=srcDataURL;
+  };
+  r.readAsDataURL(f);
+});
+document.getElementById('player-name').addEventListener('input',checkReady);
+
+// Default image
+(function(){
+  const c=document.createElement('canvas');c.width=400;c.height=300;
+  const ctx=c.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,400,300);
+  g.addColorStop(0,'#C8102E');g.addColorStop(1,'#7a0018');
+  ctx.fillStyle=g;ctx.fillRect(0,0,400,300);
+  ctx.fillStyle='rgba(255,255,255,0.05)';
+  for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(i*60-20,150,80,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='white';ctx.font='bold 90px Arial Black';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SHB',200,120);
+  ctx.font='bold 20px Arial';ctx.fillText('Ngân hàng Sài Gòn – Hà Nội',200,185);
+  ctx.font='500 13px Arial';ctx.fillStyle='rgba(255,255,255,0.55)';ctx.fillText('Puzzle Challenge',200,215);
+  srcDataURL=c.toDataURL();
+  const img=new Image();img.onload=()=>{srcImg=img;};img.src=srcDataURL;
+  document.getElementById('upload-preview').src=srcDataURL;
+  document.getElementById('upload-preview').classList.add('show');
+  document.getElementById('upload-ph').classList.add('hide');
+  document.getElementById('upload-area').classList.add('filled');
+  checkReady();
+})();
+
+// ================================================================
+//  START → PREVIEW
+// ================================================================
+function doStart(){
+  playerName=document.getElementById('player-name').value.trim();
+  if(!playerName||!srcImg)return;
+  document.getElementById('prev-img').src=srcDataURL;
+  document.getElementById('prev-bg').style.backgroundImage=`url(${srcDataURL})`;
+  document.getElementById('prev-player').textContent=`👤 ${playerName}`;
+  showScreen('s-preview');
+  let cd=5;
+  const numEl=document.getElementById('prev-cd');
+  const barEl=document.getElementById('prev-bar');
+  numEl.textContent=cd;
+  barEl.style.transition='none';barEl.style.width='100%';
+  setTimeout(()=>{barEl.style.transition=`width ${cd}s linear`;barEl.style.width='0%';},50);
+  const iv=setInterval(()=>{cd--;numEl.textContent=cd;if(cd<=0){clearInterval(iv);launchGame();}},1000);
+}
+
+// ================================================================
+//  LAUNCH GAME
+// ================================================================
+function launchGame(){
+  showScreen('s-game');
+  document.getElementById('hud-name').textContent=playerName;
+
+  // Layout calc
+  const area=document.getElementById('game-area');
+  const aH=area.clientHeight, aW=area.clientWidth;
+  const trayW=Math.max(110,Math.floor(aW*0.32));
+  const bAvailW=aW-trayW-8, bAvailH=aH;
+  let bW=bAvailW, bH=Math.round(bW*ROWS/COLS);
+  if(bH>bAvailH){bH=bAvailH;bW=Math.round(bH*COLS/ROWS);}
+  boardW=bW;boardH=bH;
+  pieceW=Math.floor(bW/COLS);pieceH=Math.floor(bH/ROWS);
+
+  const bz=document.getElementById('board-zone');
+  bz.style.width=bW+'px';bz.style.height=bH+'px';
+
+  // Ghost canvas
+  const gc=document.getElementById('snap-ghost-canvas');
+  gc.width=bW;gc.height=bH;
+
+  // Reset state
+  boardPieces=new Array(N).fill(null);
+  correctCount=0;gameEnded=false;timeLeft=120;drag=null;
+  document.getElementById('hud-fill').style.width='0';
+  document.getElementById('hud-count').textContent='0/12';
+
+  // Pre-render
+  preRenderPieces();
+
+  // Tray
+  trayOrder=shuffle(Array.from({length:N},(_,i)=>i));
+  renderTray();
+
+  // Board (empty)
+  renderBoard();
+
+  setupEvents();
+  startTimer();
+}
+
+// ================================================================
+//  RENDER TRAY
+// ================================================================
+function renderTray(){
+  const wrap=document.getElementById('tray-canvas-wrap');
+  wrap.innerHTML='';
+  // calc tray piece display size: fit in column
+  const colW=wrap.clientWidth/2-4;
+
+  for(let j=0;j<trayOrder.length;j++){
+    const pi=trayOrder[j];
+    if(pi===null){
+      const ph=document.createElement('div');
+      ph.style.cssText=`width:${colW}px;height:${Math.round(colW*PIECE_RENDER_H/PIECE_RENDER_W)}px;`;
+      wrap.appendChild(ph);
+      continue;
+    }
+    const c=document.createElement('canvas');
+    const dispW=colW;
+    const dispH=Math.round(colW*PIECE_RENDER_H/PIECE_RENDER_W);
+    c.width=dispW;c.height=dispH;
+    c.className='tray-piece';
+    c.dataset.tray=j;
+    const ctx=c.getContext('2d');
+    ctx.drawImage(trayCanvases[pi],0,0,dispW,dispH);
+    wrap.appendChild(c);
+  }
+}
+
+// ================================================================
+//  RENDER BOARD
+// ================================================================
+function renderBoard(){
+  const bz=document.getElementById('board-zone');
+  // remove existing piece canvases
+  bz.querySelectorAll('.board-piece').forEach(el=>el.remove());
+
+  const overhang=Math.max(pieceW,pieceH)*TAB+4;
+
+  for(let i=0;i<N;i++){
+    if(boardPieces[i]===null)continue;
+    const pi=boardPieces[i];
+    const col=i%COLS, row=Math.floor(i/COLS);
+    const sx=col*pieceW, sy=row*pieceH;
+
+    const c=document.createElement('canvas');
+    c.width=PIECE_RENDER_W;c.height=PIECE_RENDER_H;
+    c.className='board-piece';
+    c.dataset.board=i;
+    c.dataset.piece=pi;
+    c.style.cssText=`
+      position:absolute;
+      left:${sx-overhang}px;top:${sy-overhang}px;
+      width:${PIECE_RENDER_W}px;height:${PIECE_RENDER_H}px;
+      cursor:${pi===i?'default':'grab'};
+      pointer-events:${pi===i?'none':'auto'};
+      touch-action:none;
+      z-index:${pi===i?4:5};
+    `;
+    const ctx=c.getContext('2d');
+    ctx.drawImage(pieceCanvases[pi],0,0);
+
+    // green glow if correct
+    if(pi===i){
+      ctx.save();
+      jigsawPath(ctx,overhang,overhang,pieceW,pieceH,getPieceEdges(row,col));
+      ctx.strokeStyle='rgba(0,200,81,0.8)';
+      ctx.lineWidth=3;
+      ctx.stroke();
+      ctx.restore();
+    }
+    bz.appendChild(c);
+  }
+}
+
+// ================================================================
+//  DRAG & DROP
+// ================================================================
+let evListeners=[];
+function setupEvents(){
+  cleanupEvents();
+  const add=(el,ev,fn,opt)=>{el.addEventListener(ev,fn,opt);evListeners.push({el,ev,fn});};
+  add(document,'mousedown',onDown,{passive:false});
+  add(document,'touchstart',onDown,{passive:false});
+  add(document,'mousemove',onMove,{passive:false});
+  add(document,'touchmove',onMove,{passive:false});
+  add(document,'mouseup',onUp,{passive:false});
+  add(document,'touchend',onUp,{passive:false});
+}
+function cleanupEvents(){
+  evListeners.forEach(({el,ev,fn})=>el.removeEventListener(ev,fn));
+  evListeners=[];
+}
+function getXY(e){return e.touches?{x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY};}
+
+function onDown(e){
+  if(gameEnded)return;
+  const{x,y}=getXY(e);
+  const t=document.elementFromPoint(x,y);
+  if(!t)return;
+
+  // Tray piece?
+  const tp=t.closest('.tray-piece');
+  if(tp){
+    const j=parseInt(tp.dataset.tray);
+    const pi=trayOrder[j];
+    if(pi===null)return;
+    e.preventDefault();
+    beginDrag(pi,j,null,x,y);
+    return;
+  }
+  // Board piece?
+  const bp=t.closest('.board-piece');
+  if(bp){
+    const bi=parseInt(bp.dataset.board);
+    const pi=parseInt(bp.dataset.piece);
+    if(pi===bi)return; // correct, no move
+    e.preventDefault();
+    beginDrag(pi,null,bi,x,y);
+    return;
+  }
+}
+
+function beginDrag(pieceIdx,fromTray,fromBoard,x,y){
+  // Build ghost canvas at board piece size
+  const gc=document.getElementById('drag-ghost');
+  gc.width=PIECE_RENDER_W;gc.height=PIECE_RENDER_H;
+  gc.style.cssText=`position:fixed;pointer-events:none;z-index:99999;width:${PIECE_RENDER_W}px;height:${PIECE_RENDER_H}px;`;
+  const gctx=gc.getContext('2d');
+  gctx.clearRect(0,0,gc.width,gc.height);
+  gctx.globalAlpha=0.92;
+  gctx.drawImage(pieceCanvases[pieceIdx],0,0);
+
+  drag={pieceIdx,fromTray,fromBoard};
+  moveDragGhost(x,y);
+
+  // Fade source
+  if(fromTray!==null){
+    const el=document.querySelector(`.tray-piece[data-tray="${fromTray}"]`);
+    if(el)el.classList.add('faded');
+  } else if(fromBoard!==null){
+    const el=document.querySelector(`.board-piece[data-board="${fromBoard}"]`);
+    if(el)el.style.opacity='0.25';
+  }
+}
+
+function moveDragGhost(x,y){
+  const gc=document.getElementById('drag-ghost');
+  const hw=PIECE_RENDER_W/2, hh=PIECE_RENDER_H/2;
+  gc.style.left=(x-hw)+'px';
+  gc.style.top=(y-hh)+'px';
+}
+
+function onMove(e){
+  if(!drag)return;
+  e.preventDefault();
+  const{x,y}=getXY(e);
+  moveDragGhost(x,y);
+
+  // Show snap ghost
+  const slot=getSlotAt(x,y);
+  drawSnapGhost(slot);
+}
+
+function drawSnapGhost(slot){
+  const gc=document.getElementById('snap-ghost-canvas');
+  const ctx=gc.getContext('2d');
+  ctx.clearRect(0,0,gc.width,gc.height);
+  if(slot===null)return;
+  const col=slot%COLS, row=Math.floor(slot/COLS);
+  const sx=col*pieceW, sy=row*pieceH;
+  const edges=getPieceEdges(row,col);
+  const overhang=Math.max(pieceW,pieceH)*TAB+4;
+  // Draw ghost outline centered on slot
+  ctx.save();
+  ctx.translate(sx-overhang,sy-overhang);
+  jigsawPath(ctx,overhang,overhang,pieceW,pieceH,edges);
+  ctx.strokeStyle='rgba(200,16,46,0.8)';
+  ctx.lineWidth=2.5;
+  ctx.setLineDash([5,4]);
+  ctx.stroke();
+  ctx.fillStyle='rgba(200,16,46,0.1)';
+  ctx.fill();
+  ctx.restore();
+}
+
+function onUp(e){
+  if(!drag)return;
+  const{x,y}=e.changedTouches?{x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY}:{x:e.clientX,y:e.clientY};
+
+  // Clear ghost canvas
+  const gc=document.getElementById('snap-ghost-canvas');
+  gc.getContext('2d').clearRect(0,0,gc.width,gc.height);
+  document.getElementById('drag-ghost').style.left='-9999px';
+
+  const slot=getSlotAt(x,y);
+
+  if(slot!==null){
+    dropOnBoard(drag.pieceIdx,drag.fromTray,drag.fromBoard,slot);
+  } else {
+    // Check drop on tray area
+    const trayWrap=document.getElementById('tray-canvas-wrap');
+    const tr=trayWrap.getBoundingClientRect();
+    if(x>=tr.left&&x<=tr.right&&y>=tr.top&&y<=tr.bottom&&drag.fromBoard!==null){
+      returnToTray(drag.pieceIdx,drag.fromBoard);
+    } else {
+      restoreSource();
+    }
+  }
+  drag=null;
+}
+
+function getSlotAt(x,y){
+  const bz=document.getElementById('board-zone');
+  const r=bz.getBoundingClientRect();
+  if(x<r.left||x>r.right||y<r.top||y>r.bottom)return null;
+  const rx=x-r.left, ry=y-r.top;
+  const col=Math.floor(rx/pieceW), row=Math.floor(ry/pieceH);
+  if(col<0||col>=COLS||row<0||row>=ROWS)return null;
+  return row*COLS+col;
+}
+
+function dropOnBoard(pieceIdx,fromTray,fromBoard,toSlot){
+  const displaced=boardPieces[toSlot];
+  boardPieces[toSlot]=pieceIdx;
+
+  if(fromTray!==null){
+    trayOrder[fromTray]= displaced; // swap displaced back to tray
+  } else if(fromBoard!==null){
+    boardPieces[fromBoard]=displaced; // swap on board
+  }
+
+  renderBoard();renderTray();updateProgress();checkCompletion();
+}
+
+function returnToTray(pieceIdx,fromBoard){
+  boardPieces[fromBoard]=null;
+  const emptySlot=trayOrder.indexOf(null);
+  if(emptySlot>=0) trayOrder[emptySlot]=pieceIdx;
+  else trayOrder.push(pieceIdx);
+  renderBoard();renderTray();updateProgress();
+}
+
+function restoreSource(){renderBoard();renderTray();}
+
+// ================================================================
+//  PROGRESS
+// ================================================================
+function updateProgress(){
+  correctCount=0;
+  for(let i=0;i<N;i++)if(boardPieces[i]===i)correctCount++;
+  document.getElementById('hud-count').textContent=`${correctCount}/12`;
+  document.getElementById('hud-fill').style.width=`${correctCount/N*100}%`;
+}
+function checkCompletion(){if(correctCount===N)endGame(true);}
+
+// ================================================================
+//  TIMER
+// ================================================================
+function startTimer(){
+  startTime=Date.now();updateTimerUI();
+  gameTimer=setInterval(()=>{timeLeft--;updateTimerUI();if(timeLeft<=0){clearInterval(gameTimer);endGame(false);}},1000);
+}
+function updateTimerUI(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  const el=document.getElementById('hud-time');
+  el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  el.className='hud-t-val';
+  if(timeLeft<=10)el.classList.add('danger');
+  else if(timeLeft<=30)el.classList.add('warn');
+}
+
+// ================================================================
+//  END
+// ================================================================
+function endGame(completed){
+  if(gameEnded)return;gameEnded=true;clearInterval(gameTimer);cleanupEvents();
+  const elapsed=completed?Math.round((Date.now()-startTime)/1000):120;
+  const score=calcScore(elapsed,completed);
+  const lb=getLB();
+  lb.push({name:playerName,score,time:elapsed,done:completed,date:new Date().toLocaleDateString('vi-VN')});
+  lb.sort((a,b)=>b.score-a.score||a.time-b.time);saveLB(lb);
+  showResult(score,elapsed,completed);
+}
+function showResult(score,elapsed,completed){
+  showScreen('s-result');
+  const em={5:'🏆',4:'🥇',3:'🥈',2:'🥉',1:'👏',0:'😔'};
+  document.getElementById('res-emoji').textContent=em[score]||'🎯';
+  document.getElementById('res-pts').textContent=score;
+  document.getElementById('res-who').textContent=playerName;
+  document.getElementById('res-time').textContent=completed?fmtTime(elapsed):'Hết giờ';
+  document.getElementById('res-badge').textContent=completed?'✅ Hoàn thành':'⏰ Hết giờ';
+  if(score>=4)launchConfetti();
+}
+
+// ================================================================
+//  LEADERBOARD
+// ================================================================
+function showLB(){
+  showScreen('s-lb');
+  const lb=getLB();
+  document.getElementById('lb-sub').textContent=lb.length?`${lb.length} người`:'Chưa có ai';
+  const body=document.getElementById('lb-body');
+  if(!lb.length){body.innerHTML='<div class="lb-empty">Chưa có kết quả.<br>Hãy là người đầu tiên! 🚀</div>';return;}
+  body.innerHTML=lb.slice(0,10).map((e,i)=>{
+    const r=i+1,rc=r<=3?`r${r}`:'rn',re=r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+    return `<div class="lb-item ${r<=3?`r${r}`:''}">
+      <div class="lb-rank ${rc}">${re}</div>
+      <div class="lb-info"><div class="lb-iname">${esc(e.name)}</div><div class="lb-idetail">⏱ ${e.done?fmtTime(e.time):'Không xong'} · ${e.date}</div></div>
+      <div class="lb-iscore"><div class="lb-isn">${e.score}</div><div class="lb-isl">điểm</div></div>
+    </div>`;
+  }).join('');
+}
+function clearLB(){if(confirm('Xóa toàn bộ?')){localStorage.removeItem('shb_lb');showLB();}}
+function doPlayAgain(){showScreen('s-home');document.getElementById('player-name').value=playerName;checkReady();}
+
+// ================================================================
+//  CONFETTI
+// ================================================================
+function launchConfetti(){
+  const w=document.getElementById('confetti');w.innerHTML='';
+  const cols=['#C8102E','#FF6B6B','#FFD700','#00C851','#60B4FF','#fff'];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div');p.className='cp';
+    const sz=4+Math.random()*8;
+    p.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${1.5+Math.random()*2.5}s;animation-delay:${Math.random()}s;`;
+    w.appendChild(p);
+  }
+  setTimeout(()=>w.innerHTML='',5000);
+}
+
+window.addEventListener('resize',()=>{
+  if(document.getElementById('s-game').classList.contains('active'))launchGame();
+});
+</script>
+</body>
+</html>
